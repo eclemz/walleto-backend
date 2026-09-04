@@ -1,0 +1,29 @@
+import { Type } from 'class-transformer';
+import { IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+
+export class PaginationDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit = 20;
+
+  @IsOptional()
+  @IsIn(['DEPOSIT', 'WITHDRAWAL', 'TRANSFER'])
+  type?: 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER';
+
+  @IsOptional()
+  @IsIn(['PENDING', 'COMPLETED', 'FAILED', 'REVERSED'])
+  status?: 'PENDING' | 'COMPLETED' | 'FAILED' | 'REVERSED';
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+}

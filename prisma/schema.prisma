@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum Currency {
+  NGN
+  USD
+}
+
+enum FundingSourceType {
+  BANK_ACCOUNT
+  CARD
+}
+
+enum OtpPurpose {
+  TRANSACTION
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum BeneficiaryType {
+  WALLETO
+  US_DOMESTIC
+  INTERNATIONAL
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+}
+
+model Beneficiary {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type BeneficiaryType
+
+  name String
+
+  // Walleto account
+  walletNumber String?
+
+  // Common bank information
+  bankName    String?
+  bankAddress String?
+  country     String?
+  currency    Currency?
+
+  // US domestic
+  accountNumber String?
+  accountType   AccountType?
+  routingNumber String?
+
+  // International
+  iban                String?
+  swiftBic            String?
+  localBankIdentifier String?
+
+  beneficiaryAddress String?
+
+  // Optional transfer instructions/reference
+  purpose String?
+
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model User {
+  id          String        @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String        @unique
+  password    String
+  phoneNumber String?
+  role        Role          @default(CUSTOMER)
+  status      AccountStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  wallet         Wallet?
+  fundingSources FundingSource[]
+  otpChallenges  OtpChallenge[]
+  beneficiaries  Beneficiary[]
+}
+
+model Wallet {
+  id           String   @id @default(cuid())
+  walletNumber String   @unique
+  balance      Decimal  @default(0)
+  currency     Currency @default(USD)
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  sentTransactions     Transaction[] @relation("SentTransactions")
+  receivedTransactions Transaction[] @relation("ReceivedTransactions")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FundingSource {
+  id String @id @default(cuid())
+
+  type FundingSourceType
+
+  name String
+
+  lastFour String
+
+  bankName String?
+
+  brand String?
+
+  userId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  TRANSFER
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REVERSED
+}
+
+model Transaction {
+  id          String            @id @default(cuid())
+  amount      Decimal
+  currency    Currency
+  type        TransactionType
+  status      TransactionStatus @default(PENDING)
+  description String?
+
+  senderWalletId   String?
+  receiverWalletId String?
+
+  fundingSourceId String?
+  beneficiaryId   String?
+
+  senderWallet   Wallet? @relation("SentTransactions", fields: [senderWalletId], references: [id])
+  receiverWallet Wallet? @relation("ReceivedTransactions", fields: [receiverWalletId], references: [id])
+
+  fundingSource FundingSource? @relation(fields: [fundingSourceId], references: [id])
+  beneficiary   Beneficiary?   @relation(fields: [beneficiaryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OtpChallenge {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  purpose OtpPurpose
+
+  codeHash String
+
+  metadata Json?
+
+  attempts Int @default(0)
+
+  expiresAt DateTime
+
+  usedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, purpose])
+  @@index([expiresAt])
+}
