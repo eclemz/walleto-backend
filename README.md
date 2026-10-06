@@ -1,98 +1,224 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Walleto Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Walleto is a full-stack digital wallet application that provides users with a secure platform for managing wallets, funding sources, beneficiaries, transfers, deposits, withdrawals, and transaction history.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This repository contains the **NestJS backend API** for Walleto. It provides authentication, wallet operations, transaction processing, OTP verification, account management, and administrative functionality.
 
-## Description
+## Tech Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **NestJS** 11
+- **TypeScript**
+- **Prisma ORM** 6.19.3
+- **PostgreSQL**
+- **JWT** authentication
+- **bcrypt** password hashing
+- **class-validator** / **class-transformer**
+- **Swagger / OpenAPI**
+- **Jest**
+- **Docker**
 
-## Project setup
+## Core Features
 
-```bash
-$ npm install
+### Authentication
+
+- User registration
+- User login
+- JWT-based authentication
+- Password hashing with bcrypt
+- Password change
+- Protected API routes
+- Account status checks
+
+### Wallet Management
+
+- Wallet creation
+- Wallet balance management
+- Wallet information retrieval
+- Supported currency handling
+
+### Transactions
+
+- Deposits
+- Withdrawals
+- Internal Walleto transfers
+- External beneficiary transfers
+- Transaction history
+- Transaction status management
+- Balance validation
+- Self-transfer prevention
+
+### OTP Security
+
+Sensitive transaction operations use OTP verification.
+
+OTP challenges are associated with:
+
+- User
+- Purpose
+- Expiration
+- Attempt limits
+- Transaction metadata
+- Hashed OTP values
+- One-time usage
+
+OTP challenges are claimed atomically to prevent reuse.
+
+### Beneficiaries
+
+Users can manage external transfer beneficiaries.
+
+Beneficiary information supports:
+
+- Beneficiary/account name
+- Bank information
+- Account number
+- Routing information
+- Account type
+- Address information where required
+
+External beneficiary transfers can remain pending until administrative approval.
+
+### Funding Sources
+
+The API supports managing funding sources used for wallet operations, with ownership and account-status checks applied to sensitive operations.
+
+### Account Management
+
+Users can:
+
+- View their profile
+- Change their password
+- View account information
+- Manage account-related resources
+
+Suspended accounts can still access permitted account information and history but cannot perform restricted financial operations.
+
+### Administration
+
+Administrative functionality includes:
+
+- Role-based access control
+- User management
+- Account suspension
+- Account activation
+- Transaction review
+- Transaction approval
+- Transaction rejection
+
+Administrative endpoints are protected using role guards.
+
+---
+
+## Architecture
+
+The backend follows a modular NestJS architecture:
+
+```text
+Client
+  │
+  ▼
+Controllers
+  │
+  ▼
+Services
+  │
+  ▼
+Prisma
+  │
+  ▼
+PostgreSQL
 ```
 
-## Compile and run the project
+Authentication and authorisation are enforced through JWT authentication, guards, DTO validation, and account-status checks.
 
-```bash
-# development
-$ npm run start
+Financial operations that modify balances or create transactions are handled using database transactions to maintain consistency.
 
-# watch mode
-$ npm run start:dev
+## Database
 
-# production mode
-$ npm run start:prod
+Walleto uses PostgreSQL with Prisma ORM.
+
+The main database entities include:
+
+```text
+User
+Wallet
+FundingSource
+Beneficiary
+Transaction
+OtpChallenge
 ```
 
-## Run tests
+Important enums include:
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```text
+Role
+Currency
+FundingSourceType
+OtpPurpose
+AccountStatus
+BeneficiaryType
+AccountType
+TransactionType
+TransactionStatus
 ```
 
-## Deployment
+Prisma schema:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```text
+prisma/schema.prisma
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Project Structure
 
-## Resources
+The backend is organised around NestJS modules and application services.
 
-Check out a few resources that may come in handy when working with NestJS:
+```text
+backend/
+├── prisma/
+│   ├── migrations/
+│   └── schema.prisma
+│
+├── src/
+│   ├── ...
+│   └── main.ts
+│
+├── test/
+├── Dockerfile
+├── .dockerignore
+├── package.json
+└── tsconfig.json
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+`main.ts` configures:
 
-## Support
+- Global request validation
+- CORS
+- Swagger
+- Application port
+- API bootstrap configuration
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## Environment Variables
 
-## Stay in touch
+Create a `.env` file for local development.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Example:
 
-## License
+```env
+FRONTEND_URL=http://localhost:3001
+DATABASE_URL="postgresql://ochiagha:3634@localhost:5432/digital_wallet_db"
+JWT_SECRET=development-secret
+JWT_EXPIRES_IN=1h
+PORT=3000
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Variables
+
+| Variable         | Description                     |
+| ---------------- | ------------------------------- |
+| `DATABASE_URL`   | PostgreSQL connection string    |
+| `JWT_SECRET`     | Secret used to sign JWTs        |
+| `JWT_EXPIRES_IN` | JWT expiration period           |
+| `FRONTEND_URL`   | Frontend origin allowed by CORS |
+| `PORT`           | Backend HTTP port               |
+
+Do not commit
